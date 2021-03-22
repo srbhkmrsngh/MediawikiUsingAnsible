@@ -1,17 +1,16 @@
 # MediawikiUsingAnsible
 
 ```
-Use Following Two Jenkins Job using build step "shell execute":
-
-1. First Job to run Terraform to create infrastructure
+Use Jenkins Job to provide password variable value from jenkins and use build step "shell execute". Or If you want, you can run the job from command line by providing variable's values on command line:
 
 terraform init -lock=false
-terraform plan -lock=false -var "access_key=${access_key}" -var "secret_key=${secret_key}" 
-terraform apply --auto-approve -lock=false -var "access_key=${access_key}" 
 
-2. Second downstream job to run Ansible to cofnigure mediawiki
+terraform plan -lock=false -var "access_key=${access_key}" -var "secret_key=${secret_key}" -var "RootPassword=${RootPassword}" -var "UserPassword=${UserPassword}"
 
-ansible-playbook site.yml --extra-vars '{"mysql_root_password":"${RootPasswordViaJenkins}","mysql_wikiuser_password":"${UserPasswordViaJenkins}"}'
+terraform apply --auto-approve -lock=false -var "access_key=${access_key}" -var "secret_key=${secret_key}" -var "RootPasswordViaJenkins=${RootPassword}" -var "UserPassword=${UserPassword}"
+
+Note1: Ansible playbooks is inherited into Terraform module
+Note2: You need to configure Ansible and terraform on your system. And keep ssh private key at proper location so that it can access your server.
 ```
 
 
