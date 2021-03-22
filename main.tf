@@ -1,20 +1,12 @@
 variable "access_key" {}
 variable "secret_key" {}
-
-terraform {
-  backend "s3" {
-    bucket         = "mediawiki"
-    region         = "ap-south-1"
-	key    		   = "mediawiki/terraform.tfstate"
-    encrypt        = true
-  }
-}
+variable "Password" {}
+variable "UserPass" {}
 
 provider "aws" {
-  region = "ap-south-1"
+  region = "eu-central-1"
   access_key = "${var.access_key}"
-  secret_key = "${var.secret_key}"
-  
+  secret_key = "${var.secret_key}" 
 }
 
 data "aws_vpc" "default" {
@@ -56,13 +48,26 @@ resource "aws_instance" "app" {
   key_name               = "production"
   vpc_security_group_ids = ["${aws_security_group.IaC.id}"]
   associate_public_ip_address = true
-  monitoring			=	true
+  monitoring                    =       true
   tags = {
     Name = "Mediawiki"
   }
-  
   root_block_device {
    volume_type = "gp2"
    volume_size = 100
   }
+ provisioner "remote-exec" {
+    inline = ["sudo yum -y install python"]
+
+    connection {
+      type        = "ssh"
+	  host     = "${self.public_ip}"
+      user        = "root"
+      private_key = "/home/key"
+    }
+  }
+
+ provisioner "local-exec" {
+    command  = "ansible-playbook -u root -i '${self.public_ip},' --private-key /home/key -e 'mysql_root_password=${var.Password} -e 'mysql_wikiuser_password=${var.UserPass}' site.yml"
+}
 }
