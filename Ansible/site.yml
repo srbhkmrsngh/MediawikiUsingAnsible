@@ -1,0 +1,10 @@
+---
+## This playbook deploys Mediawiki.
+
+- hosts: all
+  sudo : True
+  remote_user: centos
+
+  roles:
+    - mediawiki-db
+    - mediawiki-app

@@ -1,0 +1,57 @@
+---
+- name: Install Required Packages
+  yum: 
+    name: "{{ item }}"
+    state: present
+  with_items:
+   - httpd24-httpd
+   - rh-php73-php
+   - rh-php73-php-mbstring
+   - rh-php73-php-mysqlnd
+   - rh-php73-php-gd
+   - rh-php73-php-xml
+   
+- name: Download Mediawiki
+  become: yes
+  get_url:
+   url: https://releases.wikimedia.org/mediawiki/1.35/mediawiki-1.35.1.tar.gz
+    dest: /home/username
+    
+- name: Downloading signature for verification
+  become: yes
+  get_url:
+   url: https://releases.wikimedia.org/mediawiki/1.35/mediawiki-1.35.1.tar.gz
+    dest: /home/username
+    
+- name: Verify Signature
+  command: "gpg --verify /home/username/mediawiki-1.35.1.tar.gz.sig /home/username/mediawiki-1.35.1.tar.gz"
+  
+- name: Untaring the application
+  command: "{{item}}"
+  with_items:
+   - cd /var/www
+   - tar -zxf /home/username/mediawiki-1.35.1.tar.gz
+   - ln -s mediawiki-1.35.1/ mediawiki
+ 
+- name: Copy httpd.conf from template directory
+  template:
+    src: httpd.conf
+    dest: /etc/httpd/conf/
+  
+- name: Change ownership of Mediwiki Directory
+  file: 
+    path: /var/www/mediawiki-1.35.1
+    owner: apache
+    group: apache 
+    state: directory 
+    recurse: yes
+
+- name: Firewall Configuration
+  command: "{{item}}"
+  with_items:
+   - firewall-cmd --permanent --zone=public --add-service=http
+   - firewall-cmd --permanent --zone=public --add-service=https
+   - systemctl restart firewalld
+   - restorecon -FR /var/www/mediawiki-1.35.1/
+   - restorecon -FR /var/www/mediawiki
+  
