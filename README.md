@@ -1,7 +1,7 @@
 # MediawikiUsingAnsible
 
 ```
-Use Jenkins Job to provide password variable value from jenkins and use build step "shell execute". Or If you want, you can run the job from command line by providing variable's values on command line:
+Use Jenkins Job to provide password variable value from jenkins using credential masking and use build step "shell execute". Or If you want, you can run the job from command line by providing variable's values on command line:
 
 terraform init -lock=false
 
